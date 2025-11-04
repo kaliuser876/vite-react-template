@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 
-interface ApiResponse {
-  message?: string;
-  [key: string]: any; // fallback if you don't know exact structure yet
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  __v?: number;
 }
 
 export default function App() {
   const [count, setCount] = useState(0);
-  const [data, setData] = useState<ApiResponse | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +20,7 @@ export default function App() {
         const response = await fetch("https://railwaybackend-production-ea2e.up.railway.app/api/users");
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         const json = await response.json();
-        setData(json);
+        setUsers(json);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -33,7 +35,7 @@ export default function App() {
     <div style={styles.container}>
       <header style={styles.header}>
         <h1 style={styles.title}>My Vite + React App</h1>
-        <p style={styles.subtitle}>A self-contained modern front-end</p>
+        <p style={styles.subtitle}>Connected to Railway API</p>
       </header>
 
       <main style={styles.main}>
@@ -51,21 +53,29 @@ export default function App() {
         {/* Info Card */}
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>Info Card</h2>
-          <p>This is a self-contained React component using inline styles. It looks clean and modern.</p>
+          <p>This React component uses inline styles and connects to a live backend API.</p>
         </div>
 
         {/* API Data Card */}
-        <div style={styles.card}>
-          <h2 style={styles.cardTitle}>API Data</h2>
+        <div style={{ ...styles.card, width: "100%", maxWidth: "900px" }}>
+          <h2 style={styles.cardTitle}>Users from API</h2>
+
           {loading && <p>Loading data...</p>}
           {error && <p style={{ color: "red" }}>Error: {error}</p>}
-          {!loading && !error && data && (
-            <div style={styles.apiBox}>
-              <pre style={styles.apiText}>
-                {JSON.stringify(data, null, 2)}
-              </pre>
+
+          {!loading && !error && users && users.length > 0 && (
+            <div style={styles.grid}>
+              {users.map((user) => (
+                <div key={user._id} style={styles.userCard}>
+                  <div style={styles.avatar}>{user.name[0].toUpperCase()}</div>
+                  <p style={styles.userName}>{user.name}</p>
+                  <p style={styles.userEmail}>{user.email}</p>
+                </div>
+              ))}
             </div>
           )}
+
+          {!loading && !error && users.length === 0 && <p>No users found.</p>}
         </div>
       </main>
 
@@ -141,18 +151,42 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     transition: "0.2s",
   },
-  apiBox: {
-    textAlign: "left",
-    background: "#f8f8f8",
-    borderRadius: "8px",
-    padding: "1rem",
-    height: "200px",
-    overflowY: "auto",
-    border: "1px solid #ddd",
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "1.5rem",
+    marginTop: "1rem",
   },
-  apiText: {
-    fontFamily: "monospace",
-    fontSize: "0.85rem",
+  userCard: {
+    background: "#ffffff",
+    borderRadius: "12px",
+    padding: "1rem",
+    boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
+    textAlign: "center",
+    transition: "transform 0.2s",
+  },
+  avatar: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #4b6cb7, #182848)",
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "1.5rem",
+    fontWeight: "bold",
+    margin: "0 auto 0.75rem",
+  },
+  userName: {
+    fontWeight: "bold",
+    margin: "0.25rem 0",
+    color: "#182848",
+  },
+  userEmail: {
+    margin: 0,
+    color: "#555",
+    fontSize: "0.9rem",
   },
   footer: {
     textAlign: "center",
