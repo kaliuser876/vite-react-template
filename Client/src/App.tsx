@@ -1,7 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect } from "react";
+
+interface ApiResponse {
+  message?: string;
+  [key: string]: any; // fallback if you don't know exact structure yet
+}
 
 export default function App() {
   const [count, setCount] = useState(0);
+  const [data, setData] = useState<ApiResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("https://railwaybackend-production-ea2e.up.railway.app/api");
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        const json = await response.json();
+        setData(json);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div style={styles.container}>
@@ -11,6 +37,7 @@ export default function App() {
       </header>
 
       <main style={styles.main}>
+        {/* Counter Card */}
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>Interactive Counter</h2>
           <p style={styles.counter}>{count}</p>
@@ -21,9 +48,24 @@ export default function App() {
           </div>
         </div>
 
+        {/* Info Card */}
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>Info Card</h2>
           <p>This is a self-contained React component using inline styles. It looks clean and modern.</p>
+        </div>
+
+        {/* API Data Card */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>API Data</h2>
+          {loading && <p>Loading data...</p>}
+          {error && <p style={{ color: "red" }}>Error: {error}</p>}
+          {!loading && !error && data && (
+            <div style={styles.apiBox}>
+              <pre style={styles.apiText}>
+                {JSON.stringify(data, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       </main>
 
@@ -99,6 +141,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     transition: "0.2s",
   },
+  apiBox: {
+    textAlign: "left",
+    background: "#f8f8f8",
+    borderRadius: "8px",
+    padding: "1rem",
+    height: "200px",
+    overflowY: "auto",
+    border: "1px solid #ddd",
+  },
+  apiText: {
+    fontFamily: "monospace",
+    fontSize: "0.85rem",
+  },
   footer: {
     textAlign: "center",
     padding: "1rem",
@@ -107,4 +162,3 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "white",
   },
 };
-
