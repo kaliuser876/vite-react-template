@@ -15,7 +15,7 @@ export default function App() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("https://railwaybackend-production-ea2e.up.railway.app/api");
+        const response = await fetch("https://railwaybackend-production-ea2e.up.railway.app/api/users");
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         const json = await response.json();
         setData(json);
